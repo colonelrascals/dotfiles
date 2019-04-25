@@ -30,7 +30,9 @@ values."
    dotspacemacs-configuration-layer-path '()
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(html
+   '(rust
+     nginx
+     html
      csv
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
@@ -81,7 +83,10 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(exec-path-from-shell)
+   dotspacemacs-additional-packages '(
+                                      exec-path-from-shell
+                                      simpleclip
+                                      )
 
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -140,7 +145,7 @@ values."
    ;; by your Emacs build.
    ;; If the value is nil then no banner is displayed. (default 'official)
    dotspacemacs-startup-banner nil
-   ;; List of items to show in startup buffer or an association list of
+   ;; List of items to show in startup buffer or an association list o
    ;; the form `(list-type . list-size)`. If nil then it is disabled.
    ;; Possible values for list-type are:
    ;; `recents' `bookmarks' `projects' `agenda' `todos'."
@@ -157,13 +162,13 @@ values."
    ;; with 2 themes variants, one dark and one light)
    dotspacemacs-themes '(zenburn
                          nimbus
-                         spacemacs-light)
+                        adwaita)
    ;; If non nil the cursor color matches the state color in GUI Emacs.
    dotspacemacs-colorize-cursor-according-to-state t
    ;; Default font, or prioritized list of fonts. `powerline-scale' allows to
    ;; quickly tweak the mode-line size to make separators look not too crappy.
-   dotspacemacs-default-font '("Comic Sans"
-                               :size 14
+   dotspacemacs-default-font '("Fira Code"
+                               :size 15
                                :weight normal
                                :width semi-expanded
                                :powerline-scale 1.1)
@@ -289,7 +294,14 @@ values."
    ;;                       text-mode
    ;;   :size-limit-kb 1000)
    ;; (default nil)
-   dotspacemacs-line-numbers nil
+   dotspacemacs-line-numbers '(:relative nil
+                                            :disabled-for-modes dired-mode
+                                                                doc-view-mode
+                                                                markdown-mode
+                                                                org-mode
+                                                                pdf-view-mode
+                                                                text-mode
+                                            :size-limit-kb 1000)
    ;; Code folding method. Possible values are `evil' and `origami'.
    ;; (default 'evil)
    dotspacemacs-folding-method 'evil
@@ -342,6 +354,14 @@ explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
 
   (exec-path-from-shell-initialize)
+
+  (setq org-agenda-prefix-format '(
+                                   ;; (agenda  . " %i %-12:c%?-12t% s") ;; file name + org-agenda-entry-type
+                                   (agenda  . "  • % s")
+                                   (timeline  . "  % s")
+                                   (todo  . " %i %-12:c")
+                                   (tags  . " %i %-12:c")
+                                   (search . " %i %-12:c")))
   ;; display time in powerline
   (display-time-mode 1)
   ;; (spacemacs|define-mode-line-segment date-time-segment
@@ -349,15 +369,20 @@ you should place your code here."
   ;;(add-to-list 'spacemacs-mode-line-right 'date-time-segment)
 
 
+  (mac-auto-operator-composition-mode)
+  ;; This works for copying, but not pasting for some reason
+  ;; (setq select-enable-clipboard t)
+
+  ;; Whatever... it's easy enough to implement that part ourselves
+  ;;(setq interprogram-paste-function
+  ;;      (lambda ()
+  ;;        (shell-command-to-string "pbpaste")))
   ;; Configure web mode indentation
   (setq web-mode-markup-indent-offset 2)
   (setq web-mode-css-indent-offset 2)
   (setq web-mode-code-indent-offset 2)
   (setq web-mode-js-indent-offset 2)
   (setq web-mode-js2-indent-offset 2)
-  (set-language-environment "UTF-8")
-  (set-default-coding-systems 'utf-8)
-  (setq powerline-default-separator 'arrow)
   (setq-default evil-escape-delay 0.2)
   (setq-default evil-escape-key-sequence "jj")
   (defun mix-format-on-save ()
@@ -365,7 +390,7 @@ you should place your code here."
       (elixir-format)))
 
   ;; display full buffer path in title window
-
+  (add-hook 'treemacs-mode-hook 'variable-pitch-mode)
   ;;(setq frame-title-format
   ;;      (list (format "%s %%S: %%j " (system-name))
   ;;            '(buffer-file-name "%f" (dired-directory dired-directory "%b"))))
@@ -373,25 +398,19 @@ you should place your code here."
   (global-prettify-symbols-mode 0)
   (setq prettify-symbols-unprettify-at-point t)
   (global-company-mode)
-  (defun configure-prettify-symbols-alist ()
-    (setq prettify-symbols-alist
-          '(
-            ("lambda" . 955) ; λ
-            ("fn" . 955)
-            ("->" . 8594)    ; →
-            ("<-" . 8592)
-            ("=>" . 8658)    ; ⇒
-            ("<=" . 8656)
-            ("|>" . 9654)
-            )))
 
-  (add-hook 'elixir-mode-hook 'prettify-symbols-mode)
-  (add-hook 'prog-mode-hook 'configure-prettify-symbols-alist)
   (custom-set-faces
    '(company-tooltip-common
      ((t (:inherit company-tooltip :weight bold :underline nil))))
    '(company-tooltip-common-selection
      ((t (:inherit company-tooltip-selection :weight bold :underline nil)))))
+
+  ;; (defun copy-from-osx ()
+  ;;  (shell-command-to-string "pbpaste"))
+
+  ;; A better vim fold
+
+
 )
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
@@ -424,15 +443,18 @@ This function is called at the very end of Spacemacs initialization."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(cua-mode t nil (cua-base))
+ '(evil-org-use-additional-insert t)
  '(evil-want-Y-yank-to-eol nil)
+ '(global-visual-line-mode t)
  '(hl-todo-keyword-faces
    (quote
     (("TODO" . "#dc752f")
      ("NEXT" . "#dc752f")
-     ("THEM" . "#2d9574")
-     ("PROG" . "#3a81c3")
+     ("WAITING" . "#2d9574")
+     ("IN-PROGRESS" . "#3a81c3")
      ("OKAY" . "#3a81c3")
-     ("DONT" . "#f2241f")
+     ("CANCELLED" . "#f2241f")
      ("FAIL" . "#f2241f")
      ("DONE" . "#42ae2c")
      ("NOTE" . "#b1951d")
@@ -443,26 +465,49 @@ This function is called at the very end of Spacemacs initialization."
      ("XXX" . "#dc752f")
      ("XXXX" . "#dc752f")
      ("???" . "#dc752f"))))
+ '(org-agenda-files (quote ("./notes.org")))
+ '(org-agenda-restore-windows-after-quit t)
+ '(org-babel-clojure-backend (quote cider))
+ '(org-default-notes-file "/Users/patrick.hildreth/org/notes.org")
  '(org-group-tags t)
+ '(org-image-actual-width nil)
+ '(org-imenu-depth 8)
+ '(org-link-translation-function (quote toc-org-unhrefify))
+ '(org-log-done (quote time))
+ '(org-src-tab-acts-natively t)
+ '(org-startup-with-inline-images t)
  '(org-tag-alist
    (quote
-    (("Macquarie(m)" . 0)
-     ("MassMutual(M)" . 0)
-     ("JC Penny(j)" . 0)
-     ("Hearst(h)" . 0)
-     ("Personal(p)" . 0))))
+    (("PERSONAL" . 112)
+     ("HIGH" . 104)
+     ("MEDIUM" . 109)
+     ("LOW" . 108)
+     ("ON-GOING" . 111))))
  '(org-todo-keywords
    (quote
     ((sequence "TODO(t)" "IN-PROGRESS(p)" "WAITING(w)" "|" "CANCELLED(x)" "DONE(d)"))))
  '(org-use-tag-inheritance t)
  '(package-selected-packages
    (quote
-    (emojify emoji-cheat-sheet-plus company-emoji tern yapfify xterm-color web-mode web-beautify tide typescript-mode tagedit smeargle slime-company company slime slim-mode shell-pop scss-mode sass-mode rvm ruby-tools ruby-test-mode rubocop rspec-mode robe rbenv rake pyvenv pytest pyenv-mode py-isort pug-mode pony-mode pip-requirements orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download multi-term mmm-mode minitest markdown-toc markdown-mode magit-gitflow livid-mode skewer-mode simple-httpd live-py-mode json-mode json-snatcher json-reformat js2-refactor js2-mode js-doc hy-mode dash-functional htmlize helm-pydoc helm-gitignore helm-css-scss haml-mode go-guru go-eldoc go-mode gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck evil-magit magit magit-popup git-commit ghub with-editor eshell-z eshell-prompt-extras esh-help emmet-mode diff-hl cython-mode coffee-mode clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider sesman queue clojure-mode chruby bundler inf-ruby auto-dictionary anaconda-mode pythonic ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async))))
+    (tern yapfify xterm-color web-mode web-beautify tide typescript-mode tagedit smeargle slime-company company slime slim-mode shell-pop scss-mode sass-mode rvm ruby-tools ruby-test-mode rubocop rspec-mode robe rbenv rake pyvenv pytest pyenv-mode py-isort pug-mode pony-mode pip-requirements orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download multi-term mmm-mode minitest markdown-toc markdown-mode magit-gitflow livid-mode skewer-mode simple-httpd live-py-mode json-mode json-snatcher json-reformat js2-refactor js2-mode js-doc hy-mode dash-functional htmlize helm-pydoc helm-gitignore helm-css-scss haml-mode go-guru go-eldoc go-mode gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck evil-magit magit magit-popup git-commit ghub with-editor eshell-z eshell-prompt-extras esh-help emmet-mode diff-hl cython-mode coffee-mode clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider sesman queue clojure-mode chruby bundler inf-ruby auto-dictionary anaconda-mode pythonic ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async)))
+ '(toc-org-max-depth 10)
+ '(treemacs-collapse-dirs 3)
+ '(treemacs-filewatch-mode t)
+ '(treemacs-follow-after-init t)
+ '(treemacs-follow-mode t)
+ '(treemacs-fringe-indicator-mode t)
+ '(treemacs-git-mode (quote deferred))
+ '(word-wrap t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(company-tooltip-common ((t (:inherit company-tooltip :weight bold :underline nil))))
- '(company-tooltip-common-selection ((t (:inherit company-tooltip-selection :weight bold :underline nil)))))
+ '(company-tooltip-common-selection ((t (:inherit company-tooltip-selection :weight bold :underline nil))))
+ '(org-agenda-calendar-event ((t (:inherit default :height 0.9 :width condensed))))
+ '(treemacs-directory-collapsed-face ((t (:height 1.0 :width normal :family "Hack"))))
+ '(treemacs-directory-face ((t (:height 1.0 :width normal :family "Hack"))))
+ '(treemacs-file-face ((t (:height 0.95 :width normal :family "Hack"))))
+ '(treemacs-root-face ((t (:inherit font-lock-constant-face :underline t :weight bold :height 1.0)))))
 )
