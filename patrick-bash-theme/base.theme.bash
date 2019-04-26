@@ -77,6 +77,8 @@ RBENV_THEME_PROMPT_SUFFIX='|'
 RBFU_THEME_PROMPT_PREFIX=' |'
 RBFU_THEME_PROMPT_SUFFIX='|'
 
+PYPY='🐍'
+
 function scm {
   if [[ "$SCM_CHECK" = false ]]; then SCM=$SCM_NONE
   elif [[ -f .git/HEAD ]] && which git &> /dev/null; then SCM=$SCM_GIT
@@ -348,13 +350,12 @@ function condaenv_prompt {
 
 function py_interp_prompt {
   py_version=$(python3 --version 2>&1 | awk '{print "py-"$2;}') || return
-  echo -e "${PYTHON_THEME_PROMPT_PREFIX}${py_version}${PYTHON_THEME_PROMPT_SUFFIX}"
+  echo -e "${PYTHON_THEME_PROMPT_PREFIX}$PYPY ${py_version:3}${PYTHON_THEME_PROMPT_SUFFIX}"
 }
 
 function python_version_prompt {
   string="$(virtualenv_prompt)$(condaenv_prompt)$(py_interp_prompt)"
-  py=🐍
-  echo -e "$py ${string:3}"
+  echo -e "${string}"
 }
 
 function git_user_info {
