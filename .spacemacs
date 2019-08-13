@@ -30,15 +30,11 @@ values."
    dotspacemacs-configuration-layer-path '()
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(rust
+   '(elixir
+     rust
      nginx
      html
      csv
-     ;; ----------------------------------------------------------------
-     ;; Example of useful layers you may want to use right away.
-     ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
-     ;; <M-m f e R> (Emacs style) to install them.
-     ;; ----------------------------------------------------------------
      helm
      (auto-completion :variables
                       auto-completion-tab-key-behavior 'cycle
@@ -46,26 +42,22 @@ values."
                       auto-completion-complete-with-key-sequence-delay 0.2
                       auto-completion-enable-sort-by-usage t
                       auto-completion-enable-snippets-in-popup t)
-     ;; better-defaults
      emacs-lisp
+     lsp
+     elixir
      git
      markdown
      org
-     docker
      emoji
      (clojure :variables
               clojure-enable-fancify-symbols t)
      (python :variables
              python-enable-yapf-format-on-save t)
-     ansible
      javascript
      common-lisp
-     go
-     typescript
      ruby
      django
      react
-     elixir
      finance
      (treemacs :variables
                treemacs-use-follow-mode t
@@ -91,7 +83,7 @@ values."
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
-   dotspacemacs-excluded-packages '()
+   dotspacemacs-excluded-packages '(alchemist)
    ;; Defines the behaviour of Spacemacs when installing packages.
    ;; Possible values are `used-only', `used-but-keep-unused' and `all'.
    ;; `used-only' installs only explicitly used packages and uninstall any
@@ -354,10 +346,21 @@ explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
 
   (exec-path-from-shell-initialize)
+  (use-package lsp-mode
+    :commands lsp
+    :ensure t
+    :diminish lsp-mode
+    :hook ((python-mode . lsp)
+           (elixir-mode . lsp))
+    :init
+    (add-to-list 'exec-path "/Users/patrick.hildreth/elixir-ls/release")
+    (setq lsp-ui-doc-enable nil))
+
+  (use-package company-lsp :commands company-lsp)
 
   (setq org-agenda-prefix-format '(
                                    ;; (agenda  . " %i %-12:c%?-12t% s") ;; file name + org-agenda-entry-type
-                                   (agenda  . "  • % s")
+                                   (agenda  . "  • ")
                                    (timeline  . "  % s")
                                    (todo  . " %i %-12:c")
                                    (tags  . " %i %-12:c")
@@ -388,7 +391,6 @@ you should place your code here."
   (defun mix-format-on-save ()
     (when (eq major-mode 'elixir-mode)
       (elixir-format)))
-
   ;; display full buffer path in title window
   (add-hook 'treemacs-mode-hook 'variable-pitch-mode)
   ;;(setq frame-title-format
@@ -454,21 +456,20 @@ This function is called at the very end of Spacemacs initialization."
      ("WAITING" . "#2d9574")
      ("IN-PROGRESS" . "#3a81c3")
      ("OKAY" . "#3a81c3")
-     ("CANCELLED" . "#f2241f")
+     ("CANCELLED" . "#dc143c")
      ("FAIL" . "#f2241f")
      ("DONE" . "#42ae2c")
-     ("NOTE" . "#b1951d")
-     ("KLUDGE" . "#b1951d")
-     ("HACK" . "#b1951d")
-     ("TEMP" . "#b1951d")
-     ("FIXME" . "#dc752f")
-     ("XXX" . "#dc752f")
-     ("XXXX" . "#dc752f")
-     ("???" . "#dc752f"))))
+     ("NOTE" . "#fcc000")
+     ("UPDATE" . "#8a2be2")
+     ("HACK" . "#fcc000")
+     ("TEMP" . "#fcc000")
+     ("BUG" . "#dc143c")
+     ("FIX" . "#fcc000")
+     ("HELP" . "#ffff00")
+     ("CAUTION" . "#ffff00"))))
  '(org-agenda-files (quote ("./notes.org")))
- '(org-agenda-restore-windows-after-quit t)
+ '(org-agenda-restore-windows-after-quit t t)
  '(org-babel-clojure-backend (quote cider))
- '(org-default-notes-file "/Users/patrick.hildreth/org/notes.org")
  '(org-group-tags t)
  '(org-image-actual-width nil)
  '(org-imenu-depth 8)
@@ -489,11 +490,11 @@ This function is called at the very end of Spacemacs initialization."
  '(org-use-tag-inheritance t)
  '(package-selected-packages
    (quote
-    (tern yapfify xterm-color web-mode web-beautify tide typescript-mode tagedit smeargle slime-company company slime slim-mode shell-pop scss-mode sass-mode rvm ruby-tools ruby-test-mode rubocop rspec-mode robe rbenv rake pyvenv pytest pyenv-mode py-isort pug-mode pony-mode pip-requirements orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download multi-term mmm-mode minitest markdown-toc markdown-mode magit-gitflow livid-mode skewer-mode simple-httpd live-py-mode json-mode json-snatcher json-reformat js2-refactor js2-mode js-doc hy-mode dash-functional htmlize helm-pydoc helm-gitignore helm-css-scss haml-mode go-guru go-eldoc go-mode gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck evil-magit magit magit-popup git-commit ghub with-editor eshell-z eshell-prompt-extras esh-help emmet-mode diff-hl cython-mode coffee-mode clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider sesman queue clojure-mode chruby bundler inf-ruby auto-dictionary anaconda-mode pythonic ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async)))
+    (lsp tern yapfify xterm-color web-mode web-beautify tide typescript-mode tagedit smeargle slime-company company slime slim-mode shell-pop scss-mode sass-mode rvm ruby-tools ruby-test-mode rubocop rspec-mode robe rbenv rake pyvenv pytest pyenv-mode py-isort pug-mode pony-mode pip-requirements orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download multi-term mmm-mode minitest markdown-toc markdown-mode magit-gitflow livid-mode skewer-mode simple-httpd live-py-mode json-mode json-snatcher json-reformat js2-refactor js2-mode js-doc hy-mode dash-functional htmlize helm-pydoc helm-gitignore helm-css-scss haml-mode go-guru go-eldoc go-mode gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck evil-magit magit magit-popup git-commit ghub with-editor eshell-z eshell-prompt-extras esh-help emmet-mode diff-hl cython-mode coffee-mode clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider sesman queue clojure-mode chruby bundler inf-ruby auto-dictionary anaconda-mode pythonic ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async)))
  '(toc-org-max-depth 10)
- '(treemacs-collapse-dirs 3)
+ '(treemacs-collapse-dirs 3 t)
  '(treemacs-filewatch-mode t)
- '(treemacs-follow-after-init t)
+ '(treemacs-follow-after-init t t)
  '(treemacs-follow-mode t)
  '(treemacs-fringe-indicator-mode t)
  '(treemacs-git-mode (quote deferred))
